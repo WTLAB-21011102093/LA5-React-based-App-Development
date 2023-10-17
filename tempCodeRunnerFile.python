@@ -1,0 +1,45 @@
+# rpc_server.py
+import json
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+# Define the handler for the HTTP server
+class RPCHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        # Read the JSON request data
+        content_length = int(self.headers['Content-Length'])
+        request_data = self.rfile.read(content_length)
+        
+        # Deserialize JSON data
+        request = json.loads(request_data.decode('utf-8'))
+        
+        # Call the RPC function
+        result = self.execute_rpc(request)
+        
+        # Serialize the result to JSON
+        response = json.dumps(result)
+        
+        # Send the HTTP response
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
+        self.wfile.write(response.encode('utf-8'))
+
+    def execute_rpc(self, request):
+        # Define your RPC functions here
+        if 'operation' in request and 'operands' in request:
+            operation = request['operation']
+            operands = request['operands']
+            if operation == 'add':
+                return {'result': sum(operands)}
+            elif operation == 'multiply':
+                return {'result': operands[0] * operands[1]}
+	    elif operation == "subtract":
+		return {"result" :}
+        return {'error': 'Invalid request'}
+
+# Create an HTTP server for RPC
+server = HTTPServer(('localhost', 8000), RPCHandler)
+
+# Run the server
+print("RPC server is listening on port 8000...")
+server.serve_forever()
